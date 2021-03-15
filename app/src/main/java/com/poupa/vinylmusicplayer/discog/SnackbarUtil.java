@@ -1,5 +1,6 @@
 package com.poupa.vinylmusicplayer.discog;
 
+import android.content.Context;
 import android.os.Build;
 import android.text.SpannableStringBuilder;
 import android.text.style.ImageSpan;
@@ -8,6 +9,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 
 import com.google.android.material.snackbar.Snackbar;
+import com.kabouzeid.appthemehelper.ThemeStore;
 import com.poupa.vinylmusicplayer.App;
 import com.poupa.vinylmusicplayer.R;
 
@@ -63,6 +65,11 @@ public class SnackbarUtil {
                 viewContainer,
                 buildMessageWithIcon(message),
                 Snackbar.LENGTH_LONG);
+
+        final Context context = viewContainer.getContext();
+        progressBar
+                .setAction("Info", view -> AveragePerfCollector.showInfoDialog(context))
+                .setActionTextColor(ThemeStore.accentColor(context));
         progressBar.show();
     }
 
