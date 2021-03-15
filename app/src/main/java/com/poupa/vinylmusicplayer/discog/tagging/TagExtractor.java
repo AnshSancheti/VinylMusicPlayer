@@ -2,6 +2,7 @@ package com.poupa.vinylmusicplayer.discog.tagging;
 
 import androidx.annotation.NonNull;
 
+import com.poupa.vinylmusicplayer.discog.AveragePerfCollector;
 import com.poupa.vinylmusicplayer.model.Song;
 
 import org.jaudiotagger.audio.AudioFile;
@@ -39,7 +40,9 @@ public class TagExtractor {
         try {
             // Override with metadata extracted from the file ourselves
             AudioFile file = AudioFileIO.read(new File(song.data));
+            AveragePerfCollector.addMark("CBA. extractTags - file load");
             Tag tags = file.getTagOrCreateAndSetDefault();
+            AveragePerfCollector.addMark("CBB. extractTags - tags load");
 
             song.albumName = safeGetTag.apply(tags, FieldKey.ALBUM);
             song.artistNames  = MultiValuesTagUtil.splitIfNeeded(safeGetTagAsList.apply(tags, FieldKey.ARTIST));
@@ -54,10 +57,12 @@ public class TagExtractor {
             song.discNumber = safeGetTagAsInteger.apply(tags, FieldKey.DISC_NO);
             song.trackNumber = safeGetTagAsInteger.apply(tags, FieldKey.TRACK);
             song.year = safeGetTagAsInteger.apply(tags, FieldKey.YEAR);
+            AveragePerfCollector.addMark("CBC. extractTags - tag mapping");
 
             ReplayGainTagExtractor.ReplayGainValues rgValues = ReplayGainTagExtractor.setReplayGainValues(file);
             song.replayGainAlbum = rgValues.album;
             song.replayGainTrack = rgValues.track;
+            AveragePerfCollector.addMark("CBZ. extractTags - replayGain");
         } catch (Exception e) {
             e.printStackTrace();
         }

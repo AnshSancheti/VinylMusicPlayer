@@ -218,7 +218,7 @@ public class Discography implements MusicServiceEventListener {
 
     private void addSong(@NonNull Song song, boolean cacheOnly) {
         synchronized (cache) {
-            AveragePerfCollector.addMark("B0. Discog.addSong - start");
+            AveragePerfCollector.addMark("CB. Discog.addSong - lock acquired");
 
             // Race condition check: If the song has been added -> skip
             if (cache.songsById.containsKey(song.id)) {
@@ -227,7 +227,7 @@ public class Discography implements MusicServiceEventListener {
 
             if (!cacheOnly) {
                 TagExtractor.extractTags(song);
-                AveragePerfCollector.addMark("B1. TagExtractor.extractTags");
+                AveragePerfCollector.addMark("CC. Discog.addSong - extractTags");
             }
 
             Consumer<List<String>> normNames = (@NonNull List<String> names) -> {
@@ -251,18 +251,18 @@ public class Discography implements MusicServiceEventListener {
                     song.genre = genre;
                 }
             } catch (NumberFormatException ignored) {}
-            AveragePerfCollector.addMark("B2. Discog.addSong - normalization");
+            AveragePerfCollector.addMark("CD. Discog.addSong - normalization");
 
             cache.addSong(song);
-            AveragePerfCollector.addMark("B3. Cache.addSong");
+            AveragePerfCollector.addMark("CE. Cache.addSong");
 
             if (!cacheOnly) {
                 database.addSong(song);
-                AveragePerfCollector.addMark("B4. DB.addSong");
+                AveragePerfCollector.addMark("CF. DB.addSong");
             }
 
             notifyDiscographyChanged();
-            AveragePerfCollector.addMark("B5. Discog.notifyDiscographyChanged");
+            AveragePerfCollector.addMark("CG. Discog.notifyDiscographyChanged");
         }
     }
 
@@ -404,10 +404,11 @@ public class Discography implements MusicServiceEventListener {
 
         AveragePerfCollector.addMark("A");
         Collection<Song> songs = database.fetchAllSongs();
-        AveragePerfCollector.addMark("B. DB.fetchAllSongs");
+        AveragePerfCollector.addMark("B.  DB.fetchAllSongs");
         for (Song song : songs) {
+            AveragePerfCollector.addMark("CA. Discog.addSong - start");
             addSong(song, true);
-            AveragePerfCollector.addMark("C. Discog.addSong");
+            AveragePerfCollector.addMark("CZ. Discog.addSong - end");
         }
         AveragePerfCollector.addMark("Z");
 
