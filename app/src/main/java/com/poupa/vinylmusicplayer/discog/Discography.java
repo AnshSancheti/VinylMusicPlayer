@@ -404,8 +404,8 @@ public class Discography implements MusicServiceEventListener {
         synchronized (cache) {
             for (long songId : songIds) {
                 cache.removeSongById(songId);
-                database.removeSongById(songId);
             }
+            database.removeSongById(songIds);
         }
         notifyDiscographyChanged();
     }

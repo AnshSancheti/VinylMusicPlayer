@@ -98,17 +98,23 @@ class DB extends SQLiteOpenHelper {
         }
     }
 
-    synchronized void removeSongById(long songId) {
+    synchronized void removeSongById(@NonNull Long... songIds) {
         try (final SQLiteDatabase db = getWritableDatabase()) {
-            db.delete(
-                    SongColumns.NAME,
-                    SongColumns.ID + " = ?",
-                    new String[]{
-                            String.valueOf(songId)
-                    });
+            db.beginTransaction();
+            for (long songId : songIds) {
+                db.delete(
+                        SongColumns.NAME,
+                        SongColumns.ID + " = ?",
+                        new String[]{
+                                String.valueOf(songId)
+                        });
+            }
+            db.setTransactionSuccessful();
+            db.endTransaction();
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     @NonNull
