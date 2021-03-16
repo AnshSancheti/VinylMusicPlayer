@@ -217,41 +217,44 @@ public class Discography implements MusicServiceEventListener {
     }
 
     private void addSong(@NonNull Song song, boolean cacheOnly) {
+        // ---- Normalization of the song data
+        // Do this work outside of the "synchronized (cache)" block
+        // to reduce the time spent in the critical section
+        if (!cacheOnly) {
+            TagExtractor.extractTags(song);
+            AveragePerfCollector.addMark("CB. Discog.addSong - extractTags");
+        }
+        Consumer<List<String>> normNames = (@NonNull List<String> names) -> {
+            List<String> normalized = new ArrayList<>();
+            for (String name : names) {
+                normalized.add(StringUtil.unicodeNormalize(name));
+            }
+            names.clear(); names.addAll(normalized);
+        };
+        normNames.accept(song.albumArtistNames);
+        normNames.accept(song.artistNames);
+        song.albumName = StringUtil.unicodeNormalize(song.albumName);
+        song.title = StringUtil.unicodeNormalize(song.title);
+        song.genre = StringUtil.unicodeNormalize(song.genre);
+
+        // Replace genre numerical ID3v1 values by textual ones
+        try {
+            int genreId = Integer.parseInt(song.genre);
+            String genre = GenreTypes.getInstanceOf().getValueForId(genreId);
+            if (genre != null) {
+                song.genre = genre;
+            }
+        } catch (NumberFormatException ignored) {}
+        AveragePerfCollector.addMark("CC. Discog.addSong - normalization");
+
+        // ---- Update the cache
         synchronized (cache) {
-            AveragePerfCollector.addMark("CB. Discog.addSong - lock acquired");
+            AveragePerfCollector.addMark("CD. Discog.addSong - lock acquired");
 
             // Race condition check: If the song has been added -> skip
             if (cache.songsById.containsKey(song.id)) {
                 return;
             }
-
-            if (!cacheOnly) {
-                TagExtractor.extractTags(song);
-                AveragePerfCollector.addMark("CC. Discog.addSong - extractTags");
-            }
-
-            Consumer<List<String>> normNames = (@NonNull List<String> names) -> {
-                List<String> normalized = new ArrayList<>();
-                for (String name : names) {
-                    normalized.add(StringUtil.unicodeNormalize(name));
-                }
-                names.clear(); names.addAll(normalized);
-            };
-            normNames.accept(song.albumArtistNames);
-            normNames.accept(song.artistNames);
-            song.albumName = StringUtil.unicodeNormalize(song.albumName);
-            song.title = StringUtil.unicodeNormalize(song.title);
-            song.genre = StringUtil.unicodeNormalize(song.genre);
-
-            // Replace genre numerical ID3v1 values by textual ones
-            try {
-                int genreId = Integer.parseInt(song.genre);
-                String genre = GenreTypes.getInstanceOf().getValueForId(genreId);
-                if (genre != null) {
-                    song.genre = genre;
-                }
-            } catch (NumberFormatException ignored) {}
-            AveragePerfCollector.addMark("CD. Discog.addSong - normalization");
 
             cache.addSong(song);
             AveragePerfCollector.addMark("CE. Cache.addSong");
@@ -260,10 +263,10 @@ public class Discography implements MusicServiceEventListener {
                 database.addSong(song);
                 AveragePerfCollector.addMark("CF. DB.addSong");
             }
-
-            notifyDiscographyChanged();
-            AveragePerfCollector.addMark("CG. Discog.notifyDiscographyChanged");
         }
+
+        notifyDiscographyChanged();
+        AveragePerfCollector.addMark("CG. Discog.notifyDiscographyChanged");
     }
 
     public void triggerSyncWithMediaStore(boolean reset) {
