@@ -86,26 +86,31 @@ public class Discography implements MusicServiceEventListener {
 
     @NonNull
     Song getOrAddSong(@NonNull final Song song) {
-        synchronized (cache) {
-            Song discogSong = getSong(song.id);
-            if (!discogSong.equals(Song.EMPTY_SONG)) {
-                BiPredicate<Song, Song> isMetadataObsolete = (final @NonNull Song incomingSong, final @NonNull Song cachedSong) -> {
-                    if (incomingSong.dateAdded != cachedSong.dateAdded) return true;
-                    if (incomingSong.dateModified != cachedSong.dateModified) return true;
-                    return (!incomingSong.data.equals(cachedSong.data));
-                };
+        // Attention: There is a possible race condition, where the cache is modified between
+        // getSong/removeSong/addSong operations hereunder
+        //
+        // One can avoid this by having the whole method synchronized on the cache object.
+        // We choose to not doing it to reduce the size of the critical section
+        // See the race condition check counter-measure in the addSong implementation
 
-                if (!isMetadataObsolete.test(song, discogSong)) {
-                    return discogSong;
-                } else {
-                    removeSongById(song.id);
-                }
+        Song discogSong = getSong(song.id);
+        if (!discogSong.equals(Song.EMPTY_SONG)) {
+            BiPredicate<Song, Song> isMetadataObsolete = (final @NonNull Song incomingSong, final @NonNull Song cachedSong) -> {
+                if (incomingSong.dateAdded != cachedSong.dateAdded) return true;
+                if (incomingSong.dateModified != cachedSong.dateModified) return true;
+                return (!incomingSong.data.equals(cachedSong.data));
+            };
+
+            if (!isMetadataObsolete.test(song, discogSong)) {
+                return discogSong;
+            } else {
+                removeSongById(song.id);
             }
-
-            addSong(song, false);
-
-            return song;
         }
+
+        addSong(song, false);
+
+        return song;
     }
 
     @NonNull
@@ -396,10 +401,11 @@ public class Discography implements MusicServiceEventListener {
 
     private void removeSongById(@NonNull Long... songIds) {
         if (songIds.length == 0) return;
-
-        for (long songId : songIds) {
-            cache.removeSongById(songId);
-            database.removeSongById(songId);
+        synchronized (cache) {
+            for (long songId : songIds) {
+                cache.removeSongById(songId);
+                database.removeSongById(songId);
+            }
         }
         notifyDiscographyChanged();
     }
