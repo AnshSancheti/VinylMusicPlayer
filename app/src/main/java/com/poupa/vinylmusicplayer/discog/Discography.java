@@ -222,7 +222,7 @@ public class Discography implements MusicServiceEventListener {
         // to reduce the time spent in the critical section
         if (!cacheOnly) {
             TagExtractor.extractTags(song);
-            AveragePerfCollector.addMark("CB. Discog.addSong - extractTags");
+            AveragePerfCollector.addMark("CC. Discog.addSong - extractTags");
         }
         Consumer<List<String>> normNames = (@NonNull List<String> names) -> {
             List<String> normalized = new ArrayList<>();
@@ -245,11 +245,11 @@ public class Discography implements MusicServiceEventListener {
                 song.genre = genre;
             }
         } catch (NumberFormatException ignored) {}
-        AveragePerfCollector.addMark("CC. Discog.addSong - normalization");
+        AveragePerfCollector.addMark("CD. Discog.addSong - normalization");
 
         // ---- Update the cache
         synchronized (cache) {
-            AveragePerfCollector.addMark("CD. Discog.addSong - lock acquired");
+            AveragePerfCollector.addMark("CE. Discog.addSong - lock acquired");
 
             // Race condition check: If the song has been added -> skip
             if (cache.songsById.containsKey(song.id)) {
@@ -257,19 +257,21 @@ public class Discography implements MusicServiceEventListener {
             }
 
             cache.addSong(song);
-            AveragePerfCollector.addMark("CE. Cache.addSong");
+            AveragePerfCollector.addMark("CF. Cache.addSong");
 
             if (!cacheOnly) {
                 database.addSong(song);
-                AveragePerfCollector.addMark("CF. DB.addSong");
+                AveragePerfCollector.addMark("CG. DB.addSong");
             }
         }
 
         notifyDiscographyChanged();
-        AveragePerfCollector.addMark("CG. Discog.notifyDiscographyChanged");
+        AveragePerfCollector.addMark("CH. Discog.notifyDiscographyChanged");
     }
 
     public void triggerSyncWithMediaStore(boolean reset) {
+        AveragePerfCollector.reset();
+
         if (isStale()) {
             // Prevent reentrance - delay to later
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -302,15 +304,15 @@ public class Discography implements MusicServiceEventListener {
 
         final int initialSongCount = getSongCount();
         ArrayList<Song> alienSongs = MediaStoreBridge.getAllSongs(context);
-        AveragePerfCollector.addMark("B.  DB.fetchAllSongs");
+        AveragePerfCollector.addMark("B.  MediaStoreBridge.getAllSongs");
         final HashSet<Long> importedSongIds = new HashSet<>();
         for (Song song : alienSongs) {
             if (isBlackListed.test(song)) continue;
             if (isZombie.test(song)) continue;
 
-            AveragePerfCollector.addMark("CA. Discog.addSong - start");
+            AveragePerfCollector.addMark("CA. Discog.getOrAddSong - start");
             Song matchedSong = getOrAddSong(song);
-            AveragePerfCollector.addMark("CZ. Discog.addSong - end");
+            AveragePerfCollector.addMark("CZ. Discog.getOrAddSong - end");
             importedSongIds.add(matchedSong.id);
 
             progressUpdater.accept(getSongCount() - initialSongCount);

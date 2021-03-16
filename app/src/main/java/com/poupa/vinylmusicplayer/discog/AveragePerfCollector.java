@@ -18,6 +18,13 @@ public class AveragePerfCollector {
     final static SortedMap<String, Long> elapsedPerMarker = new TreeMap<>();
     private static Long lastTick = System.nanoTime();
 
+    public static void reset() {
+        synchronized (elapsedPerMarker) {
+            lastTick = System.nanoTime();
+            elapsedPerMarker.clear();
+        }
+    }
+
     public static void addMark(@NonNull final String marker) {
         final long now = System.nanoTime();
         synchronized (elapsedPerMarker) {
