@@ -285,6 +285,7 @@ public class Discography implements MusicServiceEventListener {
     }
 
     int syncWithMediaStore(Consumer<Integer> progressUpdater) {
+        AveragePerfCollector.addMark("A");
         final Context context = App.getInstance().getApplicationContext();
 
         // Zombies are tracks that are removed but still indexed by MediaStore
@@ -301,12 +302,15 @@ public class Discography implements MusicServiceEventListener {
 
         final int initialSongCount = getSongCount();
         ArrayList<Song> alienSongs = MediaStoreBridge.getAllSongs(context);
+        AveragePerfCollector.addMark("B.  DB.fetchAllSongs");
         final HashSet<Long> importedSongIds = new HashSet<>();
         for (Song song : alienSongs) {
             if (isBlackListed.test(song)) continue;
             if (isZombie.test(song)) continue;
 
+            AveragePerfCollector.addMark("CA. Discog.addSong - start");
             Song matchedSong = getOrAddSong(song);
+            AveragePerfCollector.addMark("CZ. Discog.addSong - end");
             importedSongIds.add(matchedSong.id);
 
             progressUpdater.accept(getSongCount() - initialSongCount);
@@ -319,6 +323,7 @@ public class Discography implements MusicServiceEventListener {
             removeSongById(cacheSongsId.toArray(new Long[0]));
         }
 
+        AveragePerfCollector.addMark("Z");
         return (getSongCount() - initialSongCount);
     }
 
@@ -405,15 +410,10 @@ public class Discography implements MusicServiceEventListener {
     private void fetchAllSongs() {
         setStale(true);
 
-        AveragePerfCollector.addMark("A");
         Collection<Song> songs = database.fetchAllSongs();
-        AveragePerfCollector.addMark("B.  DB.fetchAllSongs");
         for (Song song : songs) {
-            AveragePerfCollector.addMark("CA. Discog.addSong - start");
             addSong(song, true);
-            AveragePerfCollector.addMark("CZ. Discog.addSong - end");
         }
-        AveragePerfCollector.addMark("Z");
 
         setStale(false);
     }
