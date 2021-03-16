@@ -227,7 +227,6 @@ public class Discography implements MusicServiceEventListener {
         // to reduce the time spent in the critical section
         if (!cacheOnly) {
             TagExtractor.extractTags(song);
-            AveragePerfCollector.addMark("CC. Discog.addSong - extractTags");
         }
         Consumer<List<String>> normNames = (@NonNull List<String> names) -> {
             List<String> normalized = new ArrayList<>();
@@ -250,11 +249,9 @@ public class Discography implements MusicServiceEventListener {
                 song.genre = genre;
             }
         } catch (NumberFormatException ignored) {}
-        AveragePerfCollector.addMark("CD. Discog.addSong - normalization");
 
         // ---- Update the cache
         synchronized (cache) {
-            AveragePerfCollector.addMark("CE. Discog.addSong - lock acquired");
 
             // Race condition check: If the song has been added -> skip
             if (cache.songsById.containsKey(song.id)) {
@@ -271,7 +268,6 @@ public class Discography implements MusicServiceEventListener {
         }
 
         notifyDiscographyChanged();
-        AveragePerfCollector.addMark("CH. Discog.notifyDiscographyChanged");
     }
 
     public void triggerSyncWithMediaStore(boolean reset) {

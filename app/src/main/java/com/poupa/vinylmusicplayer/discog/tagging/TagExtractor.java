@@ -42,7 +42,6 @@ public class TagExtractor {
             AudioFile file = AudioFileIO.read(new File(song.data));
             AveragePerfCollector.addMark("CBA. extractTags - file load");
             Tag tags = file.getTagOrCreateAndSetDefault();
-            AveragePerfCollector.addMark("CBB. extractTags - tags load");
 
             song.albumName = safeGetTag.apply(tags, FieldKey.ALBUM);
             song.artistNames  = MultiValuesTagUtil.splitIfNeeded(safeGetTagAsList.apply(tags, FieldKey.ARTIST));
@@ -57,12 +56,11 @@ public class TagExtractor {
             song.discNumber = safeGetTagAsInteger.apply(tags, FieldKey.DISC_NO);
             song.trackNumber = safeGetTagAsInteger.apply(tags, FieldKey.TRACK);
             song.year = safeGetTagAsInteger.apply(tags, FieldKey.YEAR);
-            AveragePerfCollector.addMark("CBC. extractTags - tag mapping");
 
             ReplayGainTagExtractor.ReplayGainValues rgValues = ReplayGainTagExtractor.setReplayGainValues(file);
             song.replayGainAlbum = rgValues.album;
             song.replayGainTrack = rgValues.track;
-            AveragePerfCollector.addMark("CBZ. extractTags - replayGain");
+            AveragePerfCollector.addMark("CBZ. extractTags - end");
         } catch (Exception e) {
             e.printStackTrace();
         }
