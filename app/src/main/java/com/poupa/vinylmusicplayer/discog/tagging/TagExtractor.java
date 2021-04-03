@@ -40,7 +40,7 @@ public class TagExtractor {
         try {
             // Override with metadata extracted from the file ourselves
             AudioFile file = AudioFileIO.read(new File(song.data));
-            AveragePerfCollector.addMark("CBA. extractTags - file load");
+            AveragePerfCollector.addMark("TagExtractor.extractTags - file load");
             Tag tags = file.getTagOrCreateAndSetDefault();
 
             song.albumName = safeGetTag.apply(tags, FieldKey.ALBUM);
@@ -60,7 +60,7 @@ public class TagExtractor {
             ReplayGainTagExtractor.ReplayGainValues rgValues = ReplayGainTagExtractor.setReplayGainValues(file);
             song.replayGainAlbum = rgValues.album;
             song.replayGainTrack = rgValues.track;
-            AveragePerfCollector.addMark("CBZ. extractTags - end");
+            AveragePerfCollector.addMark("TagExtractor.extractTags - end");
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -50,8 +50,10 @@ public class Discography implements MusicServiceEventListener {
     public Discography() {
         database = new DB();
         cache = new MemCache();
+        AveragePerfCollector.addMark("Discog.MemCache.new");
 
         fetchAllSongs();
+        AveragePerfCollector.addMark("Discog.fetchAllSongs");
     }
 
     // TODO This is not a singleton and should not be declared as such
@@ -259,11 +261,11 @@ public class Discography implements MusicServiceEventListener {
             }
 
             cache.addSong(song);
-            AveragePerfCollector.addMark("CF. Cache.addSong");
+            AveragePerfCollector.addMark("Cache.addSong");
 
             if (!cacheOnly) {
                 database.addSong(song);
-                AveragePerfCollector.addMark("CG. DB.addSong");
+                AveragePerfCollector.addMark("DB.addSong");
             }
         }
 
@@ -271,8 +273,6 @@ public class Discography implements MusicServiceEventListener {
     }
 
     public void triggerSyncWithMediaStore(boolean reset) {
-        AveragePerfCollector.reset();
-
         if (isStale()) {
             // Prevent reentrance - delay to later
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -288,7 +288,7 @@ public class Discography implements MusicServiceEventListener {
     }
 
     int syncWithMediaStore(Consumer<Integer> progressUpdater) {
-        AveragePerfCollector.addMark("A");
+        AveragePerfCollector.addMark("Discog.syncWithMediaStore start");
         final Context context = App.getInstance().getApplicationContext();
 
         // Zombies are tracks that are removed but still indexed by MediaStore
@@ -305,15 +305,15 @@ public class Discography implements MusicServiceEventListener {
 
         final int initialSongCount = getSongCount();
         ArrayList<Song> alienSongs = MediaStoreBridge.getAllSongs(context);
-        AveragePerfCollector.addMark("B.  MediaStoreBridge.getAllSongs");
+        AveragePerfCollector.addMark("MediaStoreBridge.getAllSongs");
         final HashSet<Long> importedSongIds = new HashSet<>();
         for (Song song : alienSongs) {
             if (isBlackListed.test(song)) continue;
             if (isZombie.test(song)) continue;
 
-            AveragePerfCollector.addMark("CA. Discog.getOrAddSong - start");
+            AveragePerfCollector.addMark("Discog.getOrAddSong - start");
             Song matchedSong = getOrAddSong(song);
-            AveragePerfCollector.addMark("CZ. Discog.getOrAddSong - end");
+            AveragePerfCollector.addMark("Discog.getOrAddSong - end");
             importedSongIds.add(matchedSong.id);
 
             progressUpdater.accept(getSongCount() - initialSongCount);
@@ -326,7 +326,7 @@ public class Discography implements MusicServiceEventListener {
             removeSongById(cacheSongsId.toArray(new Long[0]));
         }
 
-        AveragePerfCollector.addMark("Z");
+        AveragePerfCollector.addMark("Discog.syncWithMediaStore end");
         return (getSongCount() - initialSongCount);
     }
 

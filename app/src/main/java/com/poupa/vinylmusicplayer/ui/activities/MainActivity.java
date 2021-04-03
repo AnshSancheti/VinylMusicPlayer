@@ -30,6 +30,7 @@ import com.poupa.vinylmusicplayer.databinding.ActivityMainDrawerLayoutBinding;
 import com.poupa.vinylmusicplayer.databinding.SlidingMusicPanelLayoutBinding;
 import com.poupa.vinylmusicplayer.dialogs.ChangelogDialog;
 import com.poupa.vinylmusicplayer.dialogs.ScanMediaFolderChooserDialog;
+import com.poupa.vinylmusicplayer.discog.AveragePerfCollector;
 import com.poupa.vinylmusicplayer.discog.Discography;
 import com.poupa.vinylmusicplayer.glide.GlideApp;
 import com.poupa.vinylmusicplayer.glide.VinylGlideExtension;
@@ -72,6 +73,8 @@ public class MainActivity extends AbsSlidingMusicPanelActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        AveragePerfCollector.addMark("MainActivity.onCreate start");
+
         super.onCreate(savedInstanceState);
         setDrawUnderStatusbar();
 
@@ -90,10 +93,13 @@ public class MainActivity extends AbsSlidingMusicPanelActivity {
         if (!checkShowIntro()) {
             showChangelog();
         }
+        AveragePerfCollector.addMark("MainActivity.onCreate before discog");
+
 
         final Discography discog = Discography.getInstance();
         discog.startService(this);
         addMusicServiceEventListener(discog);
+        AveragePerfCollector.addMark("MainActivity.onCreate after discog");
     }
 
     @Override
@@ -183,6 +189,7 @@ public class MainActivity extends AbsSlidingMusicPanelActivity {
                     }, 200);
                     break;
                 case R.id.action_reset_discography:
+                    AveragePerfCollector.reset();
                     Discography.getInstance().triggerSyncWithMediaStore(true);
                     break;
                 case R.id.nav_settings:
