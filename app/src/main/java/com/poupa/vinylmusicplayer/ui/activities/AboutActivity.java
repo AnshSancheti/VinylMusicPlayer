@@ -20,6 +20,7 @@ import com.kabouzeid.appthemehelper.ThemeStore;
 import com.poupa.vinylmusicplayer.R;
 import com.poupa.vinylmusicplayer.databinding.ActivityAboutBinding;
 import com.poupa.vinylmusicplayer.dialogs.ChangelogDialog;
+import com.poupa.vinylmusicplayer.discog.AveragePerfCollector;
 import com.poupa.vinylmusicplayer.ui.activities.base.AbsBaseActivity;
 import com.poupa.vinylmusicplayer.ui.activities.bugreport.BugReportActivity;
 import com.poupa.vinylmusicplayer.ui.activities.intro.AppIntroActivity;
@@ -140,6 +141,7 @@ public class AboutActivity extends AbsBaseActivity implements View.OnClickListen
     }
 
     private void setUpOnClickListeners() {
+        appVersion.setOnClickListener(this);
         changelog.setOnClickListener(this);
         intro.setOnClickListener(this);
         licenses.setOnClickListener(this);
@@ -226,6 +228,8 @@ public class AboutActivity extends AbsBaseActivity implements View.OnClickListen
             openUrl(ADRIAN_TWITTER);
         } else if (v == adrianWebsite) {
             openUrl(ADRIAN_WEBSITE);
+        } else if (v == appVersion) {
+            AveragePerfCollector.showInfoDialog(this);
         }
     }
 
