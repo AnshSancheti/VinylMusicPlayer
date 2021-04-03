@@ -6,6 +6,8 @@ import android.webkit.WebView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -16,18 +18,22 @@ import java.util.TreeMap;
 public class AveragePerfCollector {
     // TODO Take the map key type as template param, requiring Comparable
     final static SortedMap<String, Long> elapsedPerMarker = new TreeMap<>();
+    final static List<String> markerByAppearanceOrder = new ArrayList<>();
     private static Long lastTick = System.nanoTime();
 
     public static void reset() {
         synchronized (elapsedPerMarker) {
             lastTick = System.nanoTime();
+            markerByAppearanceOrder.clear();
             elapsedPerMarker.clear();
         }
     }
 
     public static void addMark(@NonNull final String marker) {
         final long now = System.nanoTime();
-        synchronized (elapsedPerMarker) {
+        synchronized (markerByAppearanceOrder) {
+            if (!markerByAppearanceOrder.contains(marker)) {markerByAppearanceOrder.add(marker);}
+
             Long elapsed = elapsedPerMarker.get(marker);
             if (elapsed == null) {elapsed = 0L;}
 
@@ -38,13 +44,13 @@ public class AveragePerfCollector {
     }
 
     public static String getHtmlInfoString() {
-        synchronized (elapsedPerMarker) {
+        synchronized (markerByAppearanceOrder) {
             long totalElapsed = 0;
             for (long elapsed : elapsedPerMarker.values()) {totalElapsed = saturatedAdd(totalElapsed, elapsed);}
 
             final StringBuilder infoString = new StringBuilder();
             infoString.append("<pre>");
-            for (final String marker : elapsedPerMarker.keySet()) {
+            for (final String marker : markerByAppearanceOrder) {
                 long elapsed = elapsedPerMarker.get(marker);
                 infoString.append(String.format(
                         Locale.getDefault(),
