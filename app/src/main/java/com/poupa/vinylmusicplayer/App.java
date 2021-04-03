@@ -29,7 +29,7 @@ public class App extends MultiDexApplication {
 
         super.onCreate();
         app = this;
-        AveragePerfCollector.addMark("App.onCreate");
+        AveragePerfCollector.addMark();
 
         context = getApplicationContext();
 
@@ -45,11 +45,11 @@ public class App extends MultiDexApplication {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             new DynamicShortcutManager(this).initDynamicShortcuts();
         }
-        AveragePerfCollector.addMark("App.init...");
+        AveragePerfCollector.addMark();
 
         // setup discography
         discography = new Discography();
-        AveragePerfCollector.addMark("Discog.new");
+        AveragePerfCollector.addMark();
     }
 
     public static App getInstance() {

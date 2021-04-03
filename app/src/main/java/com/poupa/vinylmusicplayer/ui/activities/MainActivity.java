@@ -73,7 +73,7 @@ public class MainActivity extends AbsSlidingMusicPanelActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        AveragePerfCollector.addMark("MainActivity.onCreate start");
+        AveragePerfCollector.addMark();
 
         super.onCreate(savedInstanceState);
         setDrawUnderStatusbar();
@@ -93,13 +93,13 @@ public class MainActivity extends AbsSlidingMusicPanelActivity {
         if (!checkShowIntro()) {
             showChangelog();
         }
-        AveragePerfCollector.addMark("MainActivity.onCreate before discog");
+        AveragePerfCollector.addMark();
 
 
         final Discography discog = Discography.getInstance();
         discog.startService(this);
         addMusicServiceEventListener(discog);
-        AveragePerfCollector.addMark("MainActivity.onCreate after discog");
+        AveragePerfCollector.addMark();
     }
 
     @Override

@@ -29,7 +29,15 @@ public class AveragePerfCollector {
         }
     }
 
-    public static void addMark(@NonNull final String marker) {
+    public static void addMark() {
+        final StackTraceElement frame = Thread.currentThread().getStackTrace()[3];
+        final String caller =
+                frame.getClassName().replaceFirst("^com\\.poupa\\.vinylmusicplayer\\.", "") + "." + frame.getMethodName() + ":" + frame.getLineNumber();
+
+        addMark(caller);
+    }
+
+    private static void addMark(@NonNull final String marker) {
         final long now = System.nanoTime();
         synchronized (markerByAppearanceOrder) {
             if (!markerByAppearanceOrder.contains(marker)) {markerByAppearanceOrder.add(marker);}
