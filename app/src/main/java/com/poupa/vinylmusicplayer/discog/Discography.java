@@ -89,6 +89,7 @@ public class Discography implements MusicServiceEventListener {
 
     @NonNull
     Song getOrAddSong(@NonNull final Song song) {
+        AveragePerfCollector.addMark();
         // Attention: There is a possible race condition, where the cache is modified between
         // getSong/removeSong/addSong operations hereunder
         //
@@ -97,6 +98,8 @@ public class Discography implements MusicServiceEventListener {
         // See the race condition check counter-measure in the addSong implementation
 
         Song discogSong = getSong(song.id);
+        AveragePerfCollector.addMark();
+
         if (!discogSong.equals(Song.EMPTY_SONG)) {
             BiPredicate<Song, Song> isMetadataObsolete = (final @NonNull Song incomingSong, final @NonNull Song cachedSong) -> {
                 if (incomingSong.dateAdded != cachedSong.dateAdded) return true;
@@ -110,8 +113,10 @@ public class Discography implements MusicServiceEventListener {
                 removeSongById(song.id);
             }
         }
+        AveragePerfCollector.addMark();
 
         addSong(song, false);
+        AveragePerfCollector.addMark();
 
         return song;
     }

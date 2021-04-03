@@ -29,7 +29,6 @@ public class App extends MultiDexApplication {
 
         super.onCreate();
         app = this;
-        AveragePerfCollector.addMark();
 
         context = getApplicationContext();
 
