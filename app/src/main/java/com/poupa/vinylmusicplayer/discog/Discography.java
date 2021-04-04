@@ -322,7 +322,11 @@ public class Discography implements MusicServiceEventListener {
             AveragePerfCollector.addMark();
             importedSongIds.add(matchedSong.id);
 
-            progressUpdater.accept(getSongCount() - initialSongCount);
+            final int PROGRESS_UPDATER_SAMPLING_RATE = 100;
+            final int progress = getSongCount() - initialSongCount;
+            if (progress % PROGRESS_UPDATER_SAMPLING_RATE == 0) {
+                progressUpdater.accept(progress);
+            }
         }
 
         synchronized (cache) {

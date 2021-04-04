@@ -16,6 +16,8 @@ import java.util.TreeMap;
  * @author SC (soncaokim)
  */
 public class AveragePerfCollector {
+    final static boolean ENABLED = false;
+
     // TODO Take the map key type as template param, requiring Comparable
     final static SortedMap<String, Long> elapsedPerMarker = new TreeMap<>();
     final static List<String> markerByAppearanceOrder = new ArrayList<>();
@@ -30,6 +32,8 @@ public class AveragePerfCollector {
     }
 
     public static void addMark() {
+        if (!ENABLED) return;
+
         final StackTraceElement frame = Thread.currentThread().getStackTrace()[3];
         final String caller =
                 frame.getClassName().replaceFirst("^com\\.poupa\\.vinylmusicplayer\\.", "") + "." + frame.getMethodName() + ":" + frame.getLineNumber();
